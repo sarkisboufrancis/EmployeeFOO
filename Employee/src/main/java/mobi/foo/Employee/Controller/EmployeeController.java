@@ -60,4 +60,8 @@ public class EmployeeController {
     public ResponseEntity<Response> searchEmployeesByName(@RequestParam String keyword) {
         return employeeService.searchEmployeesByName(keyword);
     }
+    @GetMapping(value="/searchDepartment")
+    public ResponseEntity<Response> searchByDepartment(@RequestParam(defaultValue = "") String Name){
+        return employeeService.searchByDepartment(Name);
+    }
 }

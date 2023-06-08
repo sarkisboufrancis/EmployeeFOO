@@ -2,6 +2,7 @@ package mobi.foo.Employee.Service;
 
 import lombok.RequiredArgsConstructor;
 import mobi.foo.Employee.DTO.EmployeeDTO;
+import mobi.foo.Employee.Entity.Department;
 import mobi.foo.Employee.Entity.Employee;
 import mobi.foo.Employee.Repository.DepartmentRepository;
 import mobi.foo.Employee.Repository.EmployeeRepository;
@@ -32,12 +33,17 @@ public class EmployeeService {
         List<EmployeeDTO> employees= employeePage.getContent().stream().map(emp -> modelMapper.map(emp, EmployeeDTO.class)).collect(Collectors.toList());
         return new ResponseEntity<>(Response.builder().status(true).message("We have found all the employee").data(employees).build(), HttpStatus.OK);
     }
-
-    public ResponseEntity<Response> save (Employee employee){
-         employeeRepository.save(employee);
-        return new ResponseEntity<>(Response.builder().status(true).message("created done").data(modelMapper.map(employee,EmployeeDTO.class)).build(), HttpStatus.OK);
+    public ResponseEntity<Response> save(Employee employee) {
+        List<Department> existingDepartment = departmentRepository.findByName(employee.getDepartment().getName());
+        if (!existingDepartment.isEmpty()) {
+            employee.setDepartment(existingDepartment.get(0));
+            employeeRepository.save(employee);
+            return new ResponseEntity<>(Response.builder().status(true).message("Successfully created employee").data(modelMapper.map(employee, EmployeeDTO.class)).build(), HttpStatus.CREATED);
+        }
+        return new ResponseEntity<>(Response.builder().status(false).message("Department does not exist").build(), HttpStatus.NOT_FOUND);
 
     }
+
 
     public  ResponseEntity<Response> findById(Long id) {
         Optional<EmployeeDTO> employee =employeeRepository.findById(id).map(employ ->modelMapper.map(employ,EmployeeDTO.class) );
@@ -75,6 +81,11 @@ public class EmployeeService {
 
        List<Employee> employees= employeeRepository.findAll(example);
         return new ResponseEntity<>(Response.builder().status(true).message("find employee by name").data(employees).build(), HttpStatus.OK);
+    }
+
+    public ResponseEntity<Response> searchByDepartment(String departName){
+        List<EmployeeDTO> Employees = employeeRepository.findAll().stream().filter(empl -> empl.getDepartment().getName().equals(departName)).map(emp -> modelMapper.map(emp, EmployeeDTO.class)).collect(Collectors.toList());
+        return new ResponseEntity<>(Response.builder().status(true).message("SearchbyDepartment").data(Employees).build(), HttpStatus.OK);
     }
 }
 
